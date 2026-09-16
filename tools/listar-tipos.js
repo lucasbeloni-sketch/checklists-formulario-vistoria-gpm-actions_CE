@@ -21,16 +21,54 @@ const {
   login, abrirChecklists, selecionarChoices, esperarTiposCarregar, norm,
 } = require("../src/gpm");
 
-// Le TODAS as opcoes de um <select> nativo (value + texto), pulando o
-// placeholder "Selecione...". O nativo e a fonte da verdade: e ele que o form
-// submete, o widget Choices.js e so a casca visual.
+const SEL_TIPOS = cfg.selectors.tipoChecklist || "#tipos";
+const SEL_FINAL = cfg.selectors.finalidade || "#finalidade";
+
+// Le TODAS as opcoes de um dropdown: as do <select> nativo MAIS as do widget
+// Choices.js, deduplicadas por value.
+//
+// Ler so o nativo nao basta. No #finalidade de CE as opcoes estao la, mas no
+// #tipos o nativo volta VAZIO mesmo com o widget cheio — o Choices guarda os
+// itens no DOM dele e so devolve a opcao pro select quando ela e escolhida
+// (run 35128739631: 24 finalidades, todas com "0 tipos", e a espera dizendo que
+// havia itens de verdade). O widget e a unica fonte antes do clique.
 async function opcoesDe(root, sel) {
   return root.evaluate((s) => {
     const el = document.querySelector(s);
     if (!el) return null;
-    return [...el.options]
-      .map((o) => ({ value: o.value, texto: o.text.trim() }))
-      .filter((o) => o.value && !/^selecione/i.test(o.texto));
+    const placeholder = (t) => /^selecione/i.test(String(t ?? "").trim());
+    const vistos = new Map();
+
+    for (const o of [...el.options]) {
+      if (o.value && !placeholder(o.text)) {
+        vistos.set(o.value, { value: o.value, texto: o.text.trim(), fonte: "select" });
+      }
+    }
+    const wrap = el.closest("div.choices");
+    if (wrap) {
+      const itens = wrap.querySelectorAll('.choices__list[role="listbox"] .choices__item--choice');
+      for (const it of itens) {
+        const value = it.dataset.value || "";
+        const texto = (it.textContent || "").trim();
+        if (!texto || placeholder(texto)) continue;
+        if (!vistos.has(value)) vistos.set(value || texto, { value, texto, fonte: "widget" });
+      }
+    }
+    return [...vistos.values()];
+  }, sel);
+}
+
+// Diagnostico do campo: tipo do select e de onde as opcoes vieram.
+async function perfilDe(root, sel) {
+  return root.evaluate((s) => {
+    const el = document.querySelector(s);
+    if (!el) return null;
+    const wrap = el.closest("div.choices");
+    return {
+      multiple: el.multiple,
+      opcoesNoSelect: el.options.length,
+      itensNoWidget: wrap ? wrap.querySelectorAll('.choices__list[role="listbox"] .choices__item--choice').length : 0,
+    };
   }, sel);
 }
 
@@ -53,7 +91,9 @@ function imprimir(titulo, opcoes) {
     await login(page, cfg);
     const root = await abrirChecklists(page, cfg);
 
-    const finalidades = await opcoesDe(root, cfg.selectors.finalidade || "#finalidade");
+    mapa.perfilFinalidade = await perfilDe(root, SEL_FINAL);
+    console.log(`[perfil] #finalidade: ${JSON.stringify(mapa.perfilFinalidade)}`);
+    const finalidades = await opcoesDe(root, SEL_FINAL);
     mapa.finalidades = finalidades || [];
     imprimir("FINALIDADES", finalidades);
 
@@ -76,7 +116,9 @@ function imprimir(titulo, opcoes) {
       try {
         await selecionarChoices(root, cfg, "finalidade", f.texto, f.texto.slice(0, 12));
         const carregou = await esperarTiposCarregar(root, cfg);
-        const tipos = await opcoesDe(root, cfg.selectors.tipoChecklist || "#tipos");
+        const perfil = await perfilDe(root, SEL_TIPOS);
+        console.log(`  [perfil] #tipos: ${JSON.stringify(perfil)}`);
+        const tipos = await opcoesDe(root, SEL_TIPOS);
         mapa.tipos[f.texto] = tipos || [];
         imprimir(`TIPOS DE CHECKLIST — ${f.texto}`, tipos);
         // Lista vazia tem dois significados MUITO diferentes: "esta finalidade
