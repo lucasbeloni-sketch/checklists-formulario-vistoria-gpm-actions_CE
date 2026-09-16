@@ -45,17 +45,42 @@ condição normal: o run termina **OK** sem tocar no Drive.
 
 ## Pendências desta instalação
 
-Este repo nasceu do gêmeo de BA e ainda tem três itens por fechar:
+Este repo nasceu do gêmeo de BA. Falta **uma** coisa antes do primeiro run de
+verdade: rodar o workflow manual **Mapear filtros da tela**.
 
-| Pendência | Onde | Como fecha |
-|---|---|---|
-| **Carimbo de timestamp** | `config.json` → `timestamp.spreadsheetId` / `celula` (hoje vazios) | preencher planilha, aba e célula. Enquanto vazio, o carimbo é **pulado sem erro** e o teste `config.timestamp` fica vermelho de propósito |
-| **Textos de Finalidade/Tipo** | `config.json` → `finalidade`, `tipoChecklist`, tokens de busca | a lista de opções de CE ainda não foi inspecionada. O código só aceita o texto **exato**; se não bater, o erro imprime todas as opções vistas |
-| **Fixture dos testes de DOM** | `test/dom.test.js` → `OPCOES_TIPOS` | hoje é uma lista **sintética**. Trocar pela real depois do primeiro `npm run inspect` contra CE |
+A lista de tipos de checklist de CE é diferente da de BA, e o robô só aceita o
+texto **exato** — enquanto ninguém olhou a lista real, os valores de
+`config.json` (`finalidade`, `tipoChecklist` e os tokens de busca) são chute
+educado. O workflow loga no GPM de CE e imprime todas as Finalidades e todos os
+Tipos com value + texto exato:
+
+```bash
+GPM_USER=... GPM_PASS=... npm run tipos    # só a Finalidade do config
+TODAS=1 npm run tipos                      # varre todas as finalidades
+```
+
+Ele **sai vermelho de propósito** se o config não bater com a tela, e o log diz
+exatamente o que trocar. O mapa também vira artefato (`debug/mapa-filtros.json`).
+
+Depois de rodar, duas coisas se resolvem com ele:
+
+1. os textos exatos de `config.json`;
+2. a fixture `OPCOES_TIPOS` do `test/dom.test.js`, que hoje é uma lista
+   **sintética** — a seção "VIZINHOS do token" do log é exatamente o que deve
+   entrar lá (ver *Por que a fixture importa*, abaixo).
 
 Os seletores de tela (`config.json` → `selectors`) vieram da calibração de BA.
-Como é a mesma tela do mesmo GPM, a expectativa é que sirvam — mas rode
-`npm run inspect` contra CE antes de confiar.
+Como é a mesma tela do mesmo GPM, a expectativa é que sirvam — mas o
+`npm run inspect` confirma.
+
+### Por que a fixture importa
+
+O `test/dom.test.js` monta uma **página falsa** que imita a tela do GPM
+(flatpickr, os dois widgets Choices.js, o botão Exportar) e roda o robô de
+verdade contra ela. É o que garante, sem tocar no GPM, que o robô clica no tipo
+certo. Só que ela só testa o que você colocar na lista de opções: com a lista de
+CE de verdade lá dentro, o teste passa a provar que **nenhum tipo vizinho real**
+é pego por engano.
 
 ## Secrets necessários
 
@@ -135,6 +160,7 @@ GPM_USER=... GPM_PASS=... DRY_RUN=1 npm start
 | `HEADED=1 npm start` | browser visível (debug local; permite login manual) |
 | `npm test` | testes unitários (datas, parse, DOM stub da tela) |
 | `npm run inspect` | calibra seletores da tela |
+| `npm run tipos` | lista Finalidades e Tipos de Checklist reais (value + texto exato) |
 | `npm run check` | valida acesso ao Drive e lista a pasta |
 | `npm run carimbar` | grava só o timestamp na planilha de controle (valida acesso ao Sheets) |
 | `npm run meses` | imprime a lista de dias da **carga inicial** (último dia de cada mês) |
@@ -143,12 +169,14 @@ GPM_USER=... GPM_PASS=... DRY_RUN=1 npm start
 ## Timestamp de última execução
 
 No **fim** de todo run bem-sucedido (inclusive mês sem registros, marcado
-`(sem registros)`), o robô carimba data/hora BRT numa célula de planilha, pra
-quem olha a planilha ver quando a rotina rodou sem abrir o GitHub Actions.
+`(sem registros)`), o robô carimba data/hora BRT em `BD_Config_CE!C4` da planilha
+`1-_lTKT4wSDlJtTXkF1tLHstV9h-S3Yq_2cE8jOIC3kI` — quem olha a planilha vê quando
+a rotina rodou por último sem abrir o GitHub Actions.
+
+É a **mesma planilha** dos robôs de BA, em aba própria de CE. Não mexa na
+`BD_Config` (sem sufixo): lá o `C8` é do robô UTD e o `C10` é do LPT.
 
 - Configurável em `config.json` → `timestamp` (`spreadsheetId`, `aba`, `celula`).
-  **Ainda não preenchido neste repo** — com `spreadsheetId` vazio o passo é
-  pulado e o run segue normal.
 - `DRY_RUN=1` e runs que falharam **não** carimbam.
 - Escopo `spreadsheets` (não é o do Drive): a service account precisa de acesso
   **Editor** na planilha. Sem acesso, o run diário só emite warning
@@ -306,5 +334,6 @@ Guardas (`tools/consolidar-ano.js`):
 ## Estado
 
 Repo criado em 16/09/2026, a partir do `checklists-lpt-gpm-actions_BA`.
-**Ainda não rodou contra o GPM de CE.** Testes: 82 (um deles, o do
-`config.timestamp`, fica vermelho até a planilha de carimbo ser definida).
+**Ainda não rodou contra o GPM de CE** — o próximo passo é o workflow
+**Mapear filtros da tela**. Carimbo já apontado pra `BD_Config_CE!C4`.
+Testes: 82, todos verdes.

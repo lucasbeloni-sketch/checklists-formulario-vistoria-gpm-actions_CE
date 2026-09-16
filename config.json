@@ -12,11 +12,11 @@
   "destFolderId": "1h7atjC_nVPel0UEsrO9LT-9ekAt9AcOG",
   "timezone": "America/Sao_Paulo",
 
-  "_comentario_timestamp": "Carimbo de 'ultima execucao' gravado no FIM do run (src/timestamp.js) via Sheets API. A service account precisa de acesso EDITOR nesta planilha — e um escopo diferente do Drive (spreadsheets). Falha ao carimbar nao derruba o run: o CSV ja foi pro Drive antes. PENDENTE: spreadsheetId/aba/celula ainda nao definidos; enquanto spreadsheetId estiver vazio o carimbo e pulado sem erro.",
+  "_comentario_timestamp": "Carimbo de 'ultima execucao' gravado no FIM do run (src/timestamp.js) via Sheets API. A service account precisa de acesso EDITOR nesta planilha — e um escopo diferente do Drive (spreadsheets). Falha ao carimbar nao derruba o run: o CSV ja foi pro Drive antes. E a MESMA planilha dos robos de BA, mas em aba propria de CE (BD_Config_CE) — nao mexa na BD_Config, que e a da BA (C8 = UTD, C10 = LPT).",
   "timestamp": {
-    "spreadsheetId": "",
-    "aba": "BD_Config",
-    "celula": ""
+    "spreadsheetId": "1-_lTKT4wSDlJtTXkF1tLHstV9h-S3Yq_2cE8jOIC3kI",
+    "aba": "BD_Config_CE",
+    "celula": "C4"
   },
 
   "zipPattern": "Checklists PerguntaResposta",

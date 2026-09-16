@@ -16,9 +16,11 @@ test("rangeA1: aspas simples internas sao dobradas", () => {
   assert.equal(rangeA1("BD 'X'", "C8"), "'BD ''X'''!C8");
 });
 
-test("config.timestamp aponta pra uma celula da aba BD_Config da planilha de controle", () => {
+test("config.timestamp aponta pra uma celula da aba BD_Config_CE da planilha de controle", () => {
   assert.ok(cfg.timestamp, "cfg.timestamp ausente");
   assert.match(cfg.timestamp.spreadsheetId, /^[A-Za-z0-9_-]{20,}$/);
-  assert.equal(cfg.timestamp.aba, "BD_Config");
+  // Aba PROPRIA de CE. A BD_Config (sem sufixo) e a dos robos de BA, na mesma
+  // planilha — carimbar la sobrescreveria o heartbeat do robo errado.
+  assert.equal(cfg.timestamp.aba, "BD_Config_CE");
   assert.match(cfg.timestamp.celula, /^[A-Z]+[0-9]+$/);
 });
