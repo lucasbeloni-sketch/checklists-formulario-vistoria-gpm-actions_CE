@@ -1,0 +1,8 @@
+{
+  "_comentario": "Layout canonico da base — NASCE VAZIO de proposito. O formulario 'Formulario de Vistoria de Obras' (CE) tem outro conjunto de perguntas: copiar o layout de outro checklist reordenaria as respostas. Rode 'npm run gerar-layout' (ou o workflow 'Gerar layout.json') depois do primeiro export real. Com 'colunas' vazio o robo sobe o export COMO VEIO, sem padronizar.",
+  "geradoEm": null,
+  "baseCanonica": null,
+  "canonicas": 0,
+  "aposentadas": 0,
+  "colunas": []
+}
