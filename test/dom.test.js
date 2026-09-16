@@ -85,20 +85,31 @@ for (const [id, ph] of CAMPOS) {
 }
 
 // --- Choices.js stub ---
+// Listas REAIS do GPM de CE, capturadas por "npm run tipos" (run 35129043945).
 const OPCOES_FINALIDADE = [
-  ["1", "1 - Veicular - turno"], ["2", "2 - Veicular - Fim de turno"],
-  ["10", "10 - Vistoria de Obras Elétrica"],
+  ["1", "1 - Veicular - turno"], ["2", "2 - Veicular - Frota"],
+  ["3", "3 - Seguranca"], ["4", "4 - Servico - APR"], ["5", "5 - Auditoria"],
+  ["6", "6 - Inspeção de Segurança"], ["7", "7 - Inspeção de Qualidade"],
+  ["8", "8 - Diagnostico servico"], ["9", "9 - Atendimento ao Cliente"],
+  ["10", "10 - Vistoria de Obras Elétrica"], ["11", "11 - Vistoria de Obras Civil"],
+  ["12", "12 - Pesquisa de Satisfação"], ["13", "13 - Atestado de Obra"],
+  ["14", "14 - Turno - Fechamento"], ["15", "15 - Checklist Cadastramento"],
+  ["16", "16 - Ativo - TI"], ["17", "17 - Rede IP"], ["18", "18 - Frota - Máquinas"],
+  ["19", "19 - Licitações"], ["20", "20 - Feedback Estruturado"],
+  ["21", "21 - Permissão de Trabalho"], ["23", "23 - Entrevistas Funcionários"],
+  ["24", "24 - ATAS"], ["25", "25 - Checklist Geral"],
 ];
-// ATENCAO: lista SINTETICA. Nos repos de BA esta lista era a capturada no GPM
-// real; a de CE ainda nao foi inspecionada (rode "npm run inspect" contra
-// sirtecce e troque por ela). Os decoys foram escolhidos pra reproduzir o risco
-// deste repo: o token de busca "Vistoria de Obras" casa com todos, e um deles e
-// SUPERSTRING do alvo ("... - Concluídas") — exatamente o caso em que aceitar
-// substring, ou dar Enter no primeiro filtrado, exportaria o checklist errado.
+// Os 8 tipos que o GPM carrega sob a Finalidade 10. O alvo deste repo e o 209.
+// Os outros 7 sao os decoys de verdade: "Formulário de Visita Prévia" (41) e
+// "Vistoria Prévia Realizada - RS" (48) sao os perigosos, porque qualquer token
+// curto com "Vistoria"/"Formulário" tambem os filtra — e o Enter no primeiro
+// item da lista filtrada pegaria o 41, que vem antes do 209 na ordem alfabetica.
 const OPCOES_TIPOS = [
-  ["31", "CCM - Vistoria de Obras"], ["40", "Formulário de Vistoria de Obras"],
-  ["41", "Formulário de Vistoria de Obras - Concluídas"],
-  ["42", "Vistoria de Obras - Reincidência"], ["43", "Oportunidades de Campo"],
+  ["42", "Camada 1 (55 dias)"], ["43", "Camada 2 (37 dias)"],
+  ["44", "Camada 3 (27 dias)"], ["45", "Camada 4 (9 dias)"],
+  ["46", "Camada 5 (2 dias)"], ["41", "Formulário de Visita Prévia"],
+  ["209", "Formulário de Vistoria de Obras"],
+  ["48", "Vistoria Prévia Realizada - RS"],
 ];
 function montaChoices(select, opcoes) {
   const wrap = select.closest("div.choices");
@@ -248,7 +259,7 @@ test("Tipo de Checklist so e selecionavel depois da Finalidade (AJAX)", { skip: 
     await esperarTiposCarregar(page, CFG);
     const t = await selecionarChoices(page, CFG, "tipoChecklist", CFG.tipoChecklist, CFG.tipoChecklistSearch);
     assert.strictEqual(t.text, "Formulário de Vistoria de Obras");
-    assert.strictEqual(t.value, "40");
+    assert.strictEqual(t.value, "209");
   } finally { await browser.close(); }
 });
 
@@ -274,7 +285,7 @@ test("botao Exportar e achado pelo seletor calibrado (btn-success + texto)", { s
   } finally { await browser.close(); }
 });
 
-test("tipo: escolhe o alvo e nao os outros com 'Vistoria de Obras'", { skip: !temChromium }, async () => {
+test("tipo: escolhe o alvo e nao os outros 7 tipos da Finalidade 10", { skip: !temChromium }, async () => {
   // Regressao do run 31422888135 (repo UTD de BA): o token filtrava 5 itens e o
   // Enter pegava o primeiro. Aqui o alvo e o Formulário de Vistoria de Obras,
   // mas o mecanismo e o mesmo: clicamos no item de texto exatamente igual ao
@@ -284,18 +295,22 @@ test("tipo: escolhe o alvo e nao os outros com 'Vistoria de Obras'", { skip: !te
     await selecionarChoices(page, CFG, "finalidade", CFG.finalidade, CFG.finalidadeSearch);
     await esperarTiposCarregar(page, CFG);
     const t = await selecionarChoices(page, CFG, "tipoChecklist", CFG.tipoChecklist, CFG.tipoChecklistSearch);
-    assert.strictEqual(t.value, "40", "tem que ser o Formulário de Vistoria de Obras (40), nao a variante '- Concluídas' (41) nem o CCM (31)");
+    assert.strictEqual(t.value, "209", "tem que ser o Formulário de Vistoria de Obras (209), nao o Formulário de Visita Prévia (41) nem a Vistoria Prévia Realizada - RS (48)");
     assert.strictEqual(t.text, "Formulário de Vistoria de Obras");
   } finally { await browser.close(); }
 });
 
+// O token do config ("Vistoria de Obras") filtra 1 item so nesta lista. Este
+// teste usa um token PROPOSITALMENTE ambiguo ("Vistoria", que casa o 209 e o 48)
+// pra provar que quem garante o acerto e o clique por texto exato, nao a sorte
+// do token — se um tipo novo aparecer no GPM, o robo continua certo.
 test("tipo: mesmo com token ambiguo ('Vistoria') acerta o alvo pelo texto exato", { skip: !temChromium }, async () => {
   const { browser, page } = await abrir();
   try {
     await selecionarChoices(page, CFG, "finalidade", CFG.finalidade, CFG.finalidadeSearch);
     await esperarTiposCarregar(page, CFG);
     const t = await selecionarChoices(page, CFG, "tipoChecklist", CFG.tipoChecklist, "Vistoria");
-    assert.strictEqual(t.value, "40");
+    assert.strictEqual(t.value, "209");
   } finally { await browser.close(); }
 });
 

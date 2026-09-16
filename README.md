@@ -43,44 +43,64 @@ rodada fecha o mês anterior completo. Nenhuma lógica extra.
 Mês/período **sem registros** (toast laranja "Nenhum registro encontrado") é
 condição normal: o run termina **OK** sem tocar no Drive.
 
-## Pendências desta instalação
+## Calibração da tela de CE — feita em 16/09/2026
 
-Este repo nasceu do gêmeo de BA. Falta **uma** coisa antes do primeiro run de
-verdade: rodar o workflow manual **Mapear filtros da tela**.
+Os filtros não são chute: o workflow manual **Mapear filtros da tela**
+(`npm run tipos`) logou no GPM de CE e listou tudo (run `35129043945`).
 
-A lista de tipos de checklist de CE é diferente da de BA, e o robô só aceita o
-texto **exato** — enquanto ninguém olhou a lista real, os valores de
-`config.json` (`finalidade`, `tipoChecklist` e os tokens de busca) são chute
-educado. O workflow loga no GPM de CE e imprime todas as Finalidades e todos os
-Tipos com value + texto exato:
+A tela tem **24 finalidades**, e a Finalidade `10 - Vistoria de Obras Elétrica`
+carrega **8 tipos de checklist**:
+
+| value | Tipo de Checklist |
+|---|---|
+| 42 | Camada 1 (55 dias) |
+| 43 | Camada 2 (37 dias) |
+| 44 | Camada 3 (27 dias) |
+| 45 | Camada 4 (9 dias) |
+| 46 | Camada 5 (2 dias) |
+| 41 | Formulário de Visita Prévia |
+| **209** | **Formulário de Vistoria de Obras** — alvo deste repo |
+| 48 | Vistoria Prévia Realizada - RS |
+
+O token de busca `Vistoria de Obras` filtra **só o alvo**. Os vizinhos perigosos
+são o `41` e o `48`: qualquer token mais curto com "Vistoria" ou "Formulário"
+também os traz, e o `41` vem **antes** do alvo na ordem — é exatamente o caso em
+que dar Enter no primeiro item filtrado exportaria o checklist errado.
+
+Essa lista real está na fixture do `test/dom.test.js`. Rode o mapeamento de novo
+sempre que o GPM mudar nome de opção:
 
 ```bash
 GPM_USER=... GPM_PASS=... npm run tipos    # só a Finalidade do config
-TODAS=1 npm run tipos                      # varre todas as finalidades
+TODAS=1 npm run tipos                      # varre todas as 24 finalidades
 ```
 
 Ele **sai vermelho de propósito** se o config não bater com a tela, e o log diz
-exatamente o que trocar. O mapa também vira artefato (`debug/mapa-filtros.json`).
+o que trocar. O mapa também vira artefato (`debug/mapa-filtros.json`).
 
-Depois de rodar, duas coisas se resolvem com ele:
+### Duas coisas que a calibração de CE revelou
 
-1. os textos exatos de `config.json`;
-2. a fixture `OPCOES_TIPOS` do `test/dom.test.js`, que hoje é uma lista
-   **sintética** — a seção "VIZINHOS do token" do log é exatamente o que deve
-   entrar lá (ver *Por que a fixture importa*, abaixo).
+**1. O `<select>` nativo do `#tipos` fica vazio até você escolher.** As opções
+vivem no DOM do widget Choices.js e só entram no select no clique. Em BA dava
+pra ler o select direto; aqui, não — qualquer ferramenta de leitura tem que
+olhar o widget. (O `#finalidade` é igual: 25 itens no widget, 1 opção no
+select.)
 
-Os seletores de tela (`config.json` → `selectors`) vieram da calibração de BA.
-Como é a mesma tela do mesmo GPM, a expectativa é que sirvam — mas o
-`npm run inspect` confirma.
+**2. A espera do AJAX contava o item "Selecione..." como opção.** Ela terminava
+em milissegundos, antes de a resposta chegar, e a tela parecia ter zero tipos.
+Corrigido em `esperarTiposCarregar`: placeholder não conta, nem no widget nem no
+select. **O mesmo furo existe nos repos gêmeos de BA** — lá passa despercebido
+porque o AJAX responde antes do primeiro clique, mas é uma corrida que um dia
+perde.
 
-### Por que a fixture importa
+### Por que a fixture do teste importa
 
 O `test/dom.test.js` monta uma **página falsa** que imita a tela do GPM
 (flatpickr, os dois widgets Choices.js, o botão Exportar) e roda o robô de
-verdade contra ela. É o que garante, sem tocar no GPM, que o robô clica no tipo
-certo. Só que ela só testa o que você colocar na lista de opções: com a lista de
-CE de verdade lá dentro, o teste passa a provar que **nenhum tipo vizinho real**
-é pego por engano.
+verdade contra ela. É o que garante, sem gastar login no GPM, que o robô clica
+no tipo certo. Ela só testa o que estiver na lista de opções — por isso a lista
+é a real, e não uma inventada: hoje o teste prova que nenhum dos 7 tipos
+vizinhos **que existem de verdade** é pego por engano.
 
 ## Secrets necessários
 
@@ -136,9 +156,8 @@ pelo `<select>` nativo, que é o que o submit usa.
 
 O clique por texto exato não é preciosismo: em BA havia 5 tipos contendo "Visita
 Prévia" e dar Enter no primeiro item filtrado exportava o checklist errado sem
-ninguém perceber. Aqui o risco é o mesmo — o token `Vistoria de Obras` deve casar
-com vários tipos de CE, possivelmente incluindo variantes que são superstring do
-alvo.
+ninguém perceber. Em CE o alvo convive com `Formulário de Visita Prévia` e
+`Vistoria Prévia Realizada - RS` — ver a seção de calibração acima.
 
 ### Recalibrar / validar
 
@@ -339,6 +358,9 @@ Guardas (`tools/consolidar-ano.js`):
 ## Estado
 
 Repo criado em 16/09/2026, a partir do `checklists-lpt-gpm-actions_BA`.
-**Ainda não rodou contra o GPM de CE** — o próximo passo é o workflow
-**Mapear filtros da tela**. Carimbo já apontado pra `BD_Config_CE!C4`.
-Testes: 82, todos verdes.
+
+- Acesso ao Drive **validado**: a service account enxerga `Checklists_Vistoria`.
+- Carimbo **validado**: gravou em `BD_Config_CE!C4` (run manual).
+- Filtros **calibrados** contra a tela de CE (run `35129043945`).
+- Testes: 82, todos verdes, com as listas reais do GPM.
+- Cron ainda **desarmado** — religar depois do primeiro `dry_run` verde.

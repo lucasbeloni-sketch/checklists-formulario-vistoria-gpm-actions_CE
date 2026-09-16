@@ -26,7 +26,7 @@
   "finalidade": "10 - Vistoria de Obras Elétrica",
   "tipoChecklist": "Formulário de Vistoria de Obras",
 
-  "_comentario_busca": "Os dropdowns sao Choices.js com filtro fuzzy: digitar a string inteira NAO acha (o filtro descarta). Digitamos so este token curto, clicamos no item de texto EXATO e confirmamos pelo <select> nativo. O clique por texto exato e a protecao real contra pegar o tipo errado; o token so precisa deixar o alvo VISIVEL na lista filtrada. ATENCAO: a lista de tipos de CE ainda nao foi inspecionada — se a selecao falhar, o erro imprime todas as opcoes vistas, e ai ajuste 'finalidade'/'tipoChecklist' e os tokens.",
+  "_comentario_busca": "Os dropdowns sao Choices.js com filtro fuzzy: digitar a string inteira NAO acha (o filtro descarta). Digitamos so este token curto, clicamos no item de texto EXATO e confirmamos pelo <select> nativo. O clique por texto exato e a protecao real contra pegar o tipo errado; o token so precisa deixar o alvo VISIVEL na lista filtrada. CONFERIDO na tela de CE (npm run tipos, run 35129043945): 24 finalidades, e a Finalidade 10 carrega 8 tipos - Camada 1 a 5, 'Formulario de Visita Previa' (41), 'Formulario de Vistoria de Obras' (209, o alvo) e 'Vistoria Previa Realizada - RS' (48). O token 'Vistoria de Obras' filtra so o alvo; o 41 e o 48 sao os vizinhos que um token mais curto pegaria.",
   "finalidadeSearch": "Vistoria de Obras",
   "tipoChecklistSearch": "Vistoria de Obras",
 
@@ -38,7 +38,7 @@
   "exportButtonText": "Exportar",
   "toastVazio": "Nenhum registro encontrado",
 
-  "_comentario_selectors": "Herdados da calibracao de BA (mesma tela GR669). A tela vem DENTRO do iframe #frameTelasGPM. Os 4 seletores de data apontam para os inputs HIDDEN originais do flatpickr (que tem id e sao os que o form submete) — nao para os altInputs visiveis, que nao tem id e repetem o mesmo placeholder. Finalidade/Tipo sao <select> escondidos atras de widgets Choices.js. O botao Exportar nao tem id: casamos btn-success + texto. Rode 'npm run inspect' contra CE pra confirmar.",
+  "_comentario_selectors": "Herdados da calibracao de BA (mesma tela GR669) e CONFIRMADOS em CE no run 35129043945 (login, iframe, #finalidade, #tipos e a troca de finalidade funcionaram). Detalhe de CE: o <select> nativo do #tipos fica VAZIO ate a opcao ser escolhida - as opcoes vivem no DOM do widget Choices.js e so entram no select no clique. Por isso ferramenta de leitura tem que olhar o widget, e nao so o select. A tela vem DENTRO do iframe #frameTelasGPM. Os 4 seletores de data apontam para os inputs HIDDEN originais do flatpickr (que tem id e sao os que o form submete) — nao para os altInputs visiveis, que nao tem id e repetem o mesmo placeholder. Finalidade/Tipo sao <select> escondidos atras de widgets Choices.js. O botao Exportar nao tem id: casamos btn-success + texto. Rode 'npm run inspect' contra CE pra confirmar.",
   "selectors": {
     "loginUser": "#idLogin",
     "loginPass": "#idSenha",
