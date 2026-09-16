@@ -1,0 +1,44 @@
+name: Compilar para a planilha (manual)
+
+# Roda src/compilar.js: le TODOS os CSVs da pasta Checklists_Vistoria no Drive,
+# junta as linhas de dados e reescreve o bloco na aba BD_Checklist_GPM, a partir
+# da linha 3, carimbando o horario em B1.
+#
+# NAO toca no GPM. O robo diario ja faz isso no fim de cada rodada — este
+# workflow serve pra forcar uma recompilacao (ex.: depois de um backfill, ou se
+# a compilacao do diario saiu como aviso).
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Le o Drive e mostra o que gravaria, sem tocar na planilha"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+# Mesmo grupo dos outros: o diario tambem escreve nessa aba no fim do run.
+concurrency:
+  group: checklists-form-vistoria-ce
+  cancel-in-progress: false
+
+jobs:
+  compilar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "20"
+
+      - name: Install deps
+        run: npm ci || npm install
+
+      - name: Compila a pasta na aba BD_Checklist_GPM
+        run: npm run compilar
+        env:
+          GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+          DRY_RUN: ${{ inputs.dry_run && '1' || '' }}

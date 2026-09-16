@@ -20,7 +20,8 @@
     "gerar-layout": "node tools/gerar-layout.js",
     "consolidar": "node tools/consolidar-ano.js",
     "padronizar": "node tools/padronizar-pasta.js",
-    "carimbar": "node tools/carimbar.js"
+    "carimbar": "node tools/carimbar.js",
+    "compilar": "node src/compilar.js"
   },
   "dependencies": {
     "adm-zip": "^0.5.16",

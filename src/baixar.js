@@ -12,6 +12,7 @@ const layout = require("../layout.json");
 const { login, baixarChecklists, dump } = require("./gpm");
 const { uploadCsv } = require("./drive");
 const { carimbar } = require("./timestamp");
+const { compilar } = require("./compilar");
 const { mesAnoD1, intervaloD1, fmtBR, validarIntervalo } = require("./util");
 const { parseCsv, serializeCsv } = require("./uniao");
 const { reprojetar, validar } = require("./padronizar");
@@ -125,12 +126,26 @@ async function comRetry(fn, label, tentativas = 2) {
     await browser.close();
   }
 
-  // Carimbo de fim de execucao na planilha de controle (BD_Config!C10). So em
+  // Carimbo de fim de execucao na planilha de controle (BD_Config_CE!C4). So em
   // run de verdade que deu certo: DRY_RUN e falha nao mexem na planilha.
   if (!falhou && resultado && !dryRun) await carimbar(cfg);
 
+  // Compila a pasta inteira na aba BD_Checklist_GPM. Roda DEPOIS do upload, pra
+  // a planilha ja enxergar o mes de hoje. Falha aqui NAO derruba o run: o CSV do
+  // mes ja esta no Drive, e a planilha se corrige na proxima rodada — mas sai
+  // como aviso bem visivel no log.
+  let compilacao = null;
+  if (!falhou && resultado && !dryRun) {
+    try {
+      compilacao = await compilar();
+    } catch (e) {
+      console.warn(`[run] AVISO: compilacao para ${cfg.sheet.aba} falhou: ${e.message}`);
+    }
+  }
+
   console.log("\n=== Resumo ===");
   if (resultado) console.log(`  ${resultado.nomeFinal}: ${resultado.acao} (${resultado.bytes} bytes, md5=${resultado.md5})`);
+  if (compilacao) console.log(`  ${cfg.sheet.aba}: ${compilacao.total} linha(s) de ${compilacao.arquivos} arquivo(s)`);
   if (falhou || !resultado) {
     console.error("[run] terminou COM falhas.");
     process.exit(1);

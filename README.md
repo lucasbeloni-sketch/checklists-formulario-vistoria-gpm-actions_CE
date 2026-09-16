@@ -36,6 +36,8 @@ com o desktop, sem Google Drive Desktop montado.
 7. Extrai o CSV do zip, valida linhas + coluna `Data Execução`, e sobrescreve
    `mm.aaaa.csv` no Drive (com auto-dedup de duplicatas de mesmo nome).
 8. Carimba data/hora BRT na planilha de controle.
+9. **Compila a pasta inteira** na aba `BD_Checklist_GPM` da planilha de bases
+   (ver abaixo).
 
 Virada de mês é automática: no dia 1, ontem pertence ao mês anterior, então a
 rodada fecha o mês anterior completo. Nenhuma lógica extra.
@@ -185,6 +187,7 @@ GPM_USER=... GPM_PASS=... DRY_RUN=1 npm start
 | `npm run tipos` | lista Finalidades e Tipos de Checklist reais (value + texto exato) |
 | `npm run check` | valida acesso ao Drive e lista a pasta |
 | `npm run carimbar` | grava só o timestamp na planilha de controle (valida acesso ao Sheets) |
+| `npm run compilar` | junta os CSVs da pasta na aba `BD_Checklist_GPM` (aceita `DRY_RUN=1`) |
 | `npm run meses` | imprime a lista de dias da **carga inicial** (último dia de cada mês) |
 | `npm run gerar-layout` | monta o `layout.json` a partir dos CSVs que já estão na pasta |
 
@@ -204,6 +207,54 @@ a rotina rodou por último sem abrir o GitHub Actions.
   **Editor** na planilha. Sem acesso, o run diário só emite warning
   `[timestamp] NAO consegui gravar` — não falha, porque o CSV já foi enviado.
 - Workflow manual **Carimbar timestamp** roda só esse passo, pra testar acesso.
+
+## Compilação para a planilha (`BD_Checklist_GPM`)
+
+No fim de toda rodada bem-sucedida, o robô lê **todos** os CSVs da pasta do
+Drive, junta as linhas de dados e reescreve o bloco na aba `BD_Checklist_GPM` da
+planilha `CCM - CE - Bases (Manual)`
+(`1YtcYEFgrxVW59xG-H57gV25hWpZtROwnabZgVNrPnz0`).
+
+Layout da aba, o mesmo das irmãs (`BD_Vistoria_GPM`, `BD_ConsultaServ`,
+`BD_Precificacao`):
+
+| Linha | Conteúdo |
+|---|---|
+| 1 | `A1` = "Última atualização:" · `B1` = carimbo `dd/mm/aaaa HH:mm:ss` (BRT) |
+| 2 | os 27 cabeçalhos — **o robô nunca escreve aqui** |
+| 3+ | os dados, sem cabeçalho |
+
+```bash
+GOOGLE_CREDENTIALS="$(cat credentials.json)" npm run compilar              # grava
+GOOGLE_CREDENTIALS="$(cat credentials.json)" DRY_RUN=1 npm run compilar    # ensaio
+```
+
+Há também o workflow manual **Compilar para a planilha**, para forçar uma
+recompilação (depois de um backfill, por exemplo). Ele não toca no GPM.
+
+### O que o compilador garante
+
+- **Reprojeta cada arquivo no `layout.json` antes de juntar.** O export do GPM
+  traz uma coluna por pergunta, e só as presentes no período — dois meses podem
+  vir com cabeçalhos diferentes. Concatenar na marra desalinharia as respostas
+  na planilha. A projeção casa por **nome** de coluna, e aborta se alguma célula
+  preenchida fosse se perder.
+- **Ordem cronológica de verdade**: `09.2026.csv` antes de `10.2026.csv`
+  (alfabético poria ao contrário), e o anual `aaaa.csv` antes dos meses do mesmo
+  ano.
+- **Dedup por `cod_checklist`** — o filtro do GPM é por Data Serviço/Inspeção,
+  então a mesma linha pode aparecer em dois arquivos de mês.
+- **Limpa o bloco antes de escrever**, senão uma base que encolheu deixaria
+  linhas órfãs embaixo das novas. O clear cobre só da linha 3 pra baixo.
+- **Cresce a grade da aba** se a base passar do tamanho dela (nasceu com 1000
+  linhas); sem isso o Sheets recusa com "exceeds grid limits".
+- **Portão `minLinhas`**: se a compilação render menos linhas que o mínimo, o
+  robô **falha sem limpar a aba** — uma listagem do Drive que volte curta (falha
+  de permissão, arquivo na lixeira) não pode virar planilha vazia.
+
+Falha na compilação **não derruba a rodada**: o CSV do mês já está no Drive
+quando ela roda, e a planilha se corrige sozinha na próxima. Sai como aviso no
+log.
 
 ## Guardas contra sobrescrever o mês com lixo
 
@@ -377,7 +428,8 @@ Repo criado em 16/09/2026, a partir do `checklists-lpt-gpm-actions_BA`.
 - Robô diário **gravou no Drive** e carimbou `BD_Config_CE!C4`.
 - `layout.json` gerado dos arquivos reais: 27 colunas, 0 aposentadas.
 - Cron de 6h **armado**.
-- Testes: 82, todos verdes, com as listas reais do GPM.
+- Compilação para a aba `BD_Checklist_GPM` **no ar**: 48 linhas, carimbo em `B1`.
+- Testes: 92, todos verdes, com as listas reais do GPM.
 
 Consolidação anual (`npm run consolidar`) só entra em cena em 2027 — 2026 é o ano
 corrente e o robô diário ainda escreve nele.

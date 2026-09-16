@@ -19,6 +19,17 @@
     "celula": "C4"
   },
 
+  "_comentario_sheet": "Compilador (src/compilar.js): junta TODAS as linhas de dados dos CSVs da pasta e escreve na aba BD_Checklist_GPM da planilha de bases de CE, a partir da linha 3. Layout da aba, igual ao das abas irmas (BD_Vistoria_GPM, BD_ConsultaServ): L1 = rotulo em A1 + timestamp em B1, L2 = os 27 cabecalhos, L3+ = dados. O compilador NUNCA toca as linhas 1-2 fora da celula do timestamp. minLinhas e o portao contra limpar a aba e escrever quase nada se a listagem do Drive vier curta.",
+  "sheet": {
+    "spreadsheetId": "1YtcYEFgrxVW59xG-H57gV25hWpZtROwnabZgVNrPnz0",
+    "aba": "BD_Checklist_GPM",
+    "linhaInicioDados": 3,
+    "timestampCell": "B1",
+    "rotuloTimestamp": "\u00daltima atualiza\u00e7\u00e3o:",
+    "valueInputOption": "USER_ENTERED",
+    "minLinhas": 1
+  },
+
   "zipPattern": "Checklists PerguntaResposta",
   "minLinhasDados": 1,
 
