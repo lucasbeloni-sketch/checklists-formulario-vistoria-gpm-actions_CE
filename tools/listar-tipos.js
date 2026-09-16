@@ -75,10 +75,16 @@ function imprimir(titulo, opcoes) {
       console.log(`\n--- carregando tipos de "${f.texto}" ---`);
       try {
         await selecionarChoices(root, cfg, "finalidade", f.texto, f.texto.slice(0, 12));
-        await esperarTiposCarregar(root, cfg);
+        const carregou = await esperarTiposCarregar(root, cfg);
         const tipos = await opcoesDe(root, cfg.selectors.tipoChecklist || "#tipos");
         mapa.tipos[f.texto] = tipos || [];
         imprimir(`TIPOS DE CHECKLIST — ${f.texto}`, tipos);
+        // Lista vazia tem dois significados MUITO diferentes: "esta finalidade
+        // nao tem tipo nenhum" e "o AJAX nao respondeu". Separar os dois aqui
+        // evita concluir que o alvo nao existe quando so faltou esperar.
+        if (!tipos || tipos.length === 0) {
+          console.log(`  [${carregou ? "vazio de verdade" : "AJAX NAO RESPONDEU"}] nenhum tipo sob esta finalidade.`);
+        }
       } catch (e) {
         console.warn(`  [aviso] nao consegui listar os tipos desta finalidade: ${e.message}`);
         mapa.tipos[f.texto] = null;
