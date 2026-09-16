@@ -118,10 +118,8 @@ robô precise de um login próprio. Não precisa criá-los.
 (`workflow_dispatch`, com checkbox `dry_run`). `concurrency` impede dois runs
 escrevendo o mesmo arquivo do mês.
 
-> **O cron nasce DESARMADO** (comentado no `on:`). Enquanto os textos de
-> Finalidade/Tipo não forem confirmados contra a tela de CE, cada disparo
-> automático só falharia e comentaria na issue rolante. Descomente as duas
-> linhas depois do primeiro `dry_run` verde.
+> O cron ficou desarmado durante a calibração e foi **religado em 16/09/2026**,
+> depois do primeiro run verde gravando no Drive.
 
 > A `concurrency` do GitHub Actions só guarda **um** run na fila: disparando
 > vários backfills em sequência, o do meio é cancelado. Dispare um lote de cada
@@ -246,10 +244,23 @@ perder resposta histórica) e grava o `layout.json`. Há também o workflow manu
 
 Nunca copie `layout.json` entre robôs de checklists diferentes.
 
-## Carga inicial da base
+## Carga inicial da base — feita em 16/09/2026
 
-A pasta `Checklists_Vistoria` foi criada vazia em 16/09/2026. A carga combinada é
-**de 2026 em diante**.
+A pasta `Checklists_Vistoria` foi criada vazia em 16/09/2026 e carregada **de
+2026 em diante**. Resultado, com os 8 meses fechados de 2026 mais o corrente:
+
+| Arquivo | Linhas |
+|---|---|
+| 01–06/2026 | **nenhum registro** — não geraram arquivo |
+| `07.2026.csv` | 29 |
+| `08.2026.csv` | 8 |
+| `09.2026.csv` | 11 (parcial, até 15/09) |
+
+Ou seja, este checklist **só começa a aparecer em julho de 2026**. Se alguém
+estranhar a ausência do primeiro semestre, o dado é assim — não é falha do robô.
+Os 3 arquivos passaram no `npm run auditar`: 27 colunas, zero linha deslocada.
+
+### Como refazer, se precisar
 
 Com a pasta vazia, `npm run faltantes` não acha nada (ele compara com o que já
 existe), então a carga inicial é sempre por `DIAS=` explícito. E atenção: a
@@ -359,8 +370,14 @@ Guardas (`tools/consolidar-ano.js`):
 
 Repo criado em 16/09/2026, a partir do `checklists-lpt-gpm-actions_BA`.
 
-- Acesso ao Drive **validado**: a service account enxerga `Checklists_Vistoria`.
-- Carimbo **validado**: gravou em `BD_Config_CE!C4` (run manual).
+**NO AR e validado fim a fim no mesmo dia.**
+
 - Filtros **calibrados** contra a tela de CE (run `35129043945`).
+- Carga inicial de 2026 **feita**: 3 arquivos, 48 linhas, auditoria limpa.
+- Robô diário **gravou no Drive** e carimbou `BD_Config_CE!C4`.
+- `layout.json` gerado dos arquivos reais: 27 colunas, 0 aposentadas.
+- Cron de 6h **armado**.
 - Testes: 82, todos verdes, com as listas reais do GPM.
-- Cron ainda **desarmado** — religar depois do primeiro `dry_run` verde.
+
+Consolidação anual (`npm run consolidar`) só entra em cena em 2027 — 2026 é o ano
+corrente e o robô diário ainda escreve nele.

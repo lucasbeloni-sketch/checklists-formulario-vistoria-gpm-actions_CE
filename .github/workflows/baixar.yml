@@ -1,12 +1,8 @@
 name: Checklists Formulario de Vistoria GPM CE
 
 on:
-  # CRON DESARMADO ate a calibracao terminar (mapear filtros -> ajustar config ->
-  # dry_run verde). Enquanto os textos de Finalidade/Tipo forem chute, cada
-  # disparo automatico so falharia e comentaria na issue rolante. Pra ligar,
-  # descomente as 2 linhas abaixo.
-  # schedule:
-  #   - cron: "0 */6 * * *"   # a cada 6h (UTC): 00/06/12/18 UTC = 21/03/09/15 BRT
+  schedule:
+    - cron: "0 */6 * * *"   # a cada 6h (UTC): 00/06/12/18 UTC = 21/03/09/15 BRT
   workflow_dispatch:
     inputs:
       dry_run:
