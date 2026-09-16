@@ -98,6 +98,11 @@ robô precise de um login próprio. Não precisa criá-los.
 (`workflow_dispatch`, com checkbox `dry_run`). `concurrency` impede dois runs
 escrevendo o mesmo arquivo do mês.
 
+> **O cron nasce DESARMADO** (comentado no `on:`). Enquanto os textos de
+> Finalidade/Tipo não forem confirmados contra a tela de CE, cada disparo
+> automático só falharia e comentaria na issue rolante. Descomente as duas
+> linhas depois do primeiro `dry_run` verde.
+
 > A `concurrency` do GitHub Actions só guarda **um** run na fila: disparando
 > vários backfills em sequência, o do meio é cancelado. Dispare um lote de cada
 > vez.
