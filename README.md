@@ -35,9 +35,8 @@ com o desktop, sem Google Drive Desktop montado.
 6. Clica **Exportar** e captura o download.
 7. Extrai o CSV do zip, valida linhas + coluna `Data Execução`, e sobrescreve
    `mm.aaaa.csv` no Drive (com auto-dedup de duplicatas de mesmo nome).
-8. Carimba data/hora BRT na planilha de controle.
-9. **Compila a pasta inteira** na aba `BD_Checklist_GPM` da planilha de bases
-   (ver abaixo).
+8. **Compila a pasta inteira** na aba `BD_Checklist_GPM` da planilha de bases,
+   carimbando data/hora BRT em `B1` (ver abaixo).
 
 Virada de mês é automática: no dia 1, ontem pertence ao mês anterior, então a
 rodada fecha o mês anterior completo. Nenhuma lógica extra.
@@ -186,27 +185,20 @@ GPM_USER=... GPM_PASS=... DRY_RUN=1 npm start
 | `npm run inspect` | calibra seletores da tela |
 | `npm run tipos` | lista Finalidades e Tipos de Checklist reais (value + texto exato) |
 | `npm run check` | valida acesso ao Drive e lista a pasta |
-| `npm run carimbar` | grava só o timestamp na planilha de controle (valida acesso ao Sheets) |
 | `npm run compilar` | junta os CSVs da pasta na aba `BD_Checklist_GPM` (aceita `DRY_RUN=1`) |
 | `npm run meses` | imprime a lista de dias da **carga inicial** (último dia de cada mês) |
 | `npm run gerar-layout` | monta o `layout.json` a partir dos CSVs que já estão na pasta |
 
 ## Timestamp de última execução
 
-No **fim** de todo run bem-sucedido (inclusive mês sem registros, marcado
-`(sem registros)`), o robô carimba data/hora BRT em `BD_Config_CE!C4` da planilha
-`1-_lTKT4wSDlJtTXkF1tLHstV9h-S3Yq_2cE8jOIC3kI` — quem olha a planilha vê quando
-a rotina rodou por último sem abrir o GitHub Actions.
+O carimbo fica em **`BD_Checklist_GPM!B1`**, gravado pelo compilador — na
+própria planilha onde os dados aparecem, do lado do rótulo em `A1`. Quem abre a
+aba vê quando a base foi atualizada sem precisar do GitHub Actions.
 
-É a **mesma planilha** dos robôs de BA, em aba própria de CE. Não mexa na
-`BD_Config` (sem sufixo): lá o `C8` é do robô UTD e o `C10` é do LPT.
-
-- Configurável em `config.json` → `timestamp` (`spreadsheetId`, `aba`, `celula`).
-- `DRY_RUN=1` e runs que falharam **não** carimbam.
-- Escopo `spreadsheets` (não é o do Drive): a service account precisa de acesso
-  **Editor** na planilha. Sem acesso, o run diário só emite warning
-  `[timestamp] NAO consegui gravar` — não falha, porque o CSV já foi enviado.
-- Workflow manual **Carimbar timestamp** roda só esse passo, pra testar acesso.
+> Até 17/09/2026 este robô também carimbava em `BD_Config_CE!C4` da planilha
+> `PAINEL CCM - Robôs`. Removido: eram dois carimbos para a mesma informação.
+> Os robôs de **BA** continuam usando a aba `BD_Config` de lá (`C8` = UTD,
+> `C10` = LPT) — nada disso mudou para eles.
 
 ## Compilação para a planilha (`BD_Checklist_GPM`)
 
@@ -425,7 +417,7 @@ Repo criado em 16/09/2026, a partir do `checklists-lpt-gpm-actions_BA`.
 
 - Filtros **calibrados** contra a tela de CE (run `35129043945`).
 - Carga inicial de 2026 **feita**: 3 arquivos, 48 linhas, auditoria limpa.
-- Robô diário **gravou no Drive** e carimbou `BD_Config_CE!C4`.
+- Robô diário **gravou no Drive**.
 - `layout.json` gerado dos arquivos reais: 27 colunas, 0 aposentadas.
 - Cron de 6h **armado**.
 - Compilação para a aba `BD_Checklist_GPM` **no ar**: 48 linhas, carimbo em `B1`.

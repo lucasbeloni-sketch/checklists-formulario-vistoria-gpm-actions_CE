@@ -11,7 +11,6 @@ const cfg = require("../config.json");
 const layout = require("../layout.json");
 const { login, baixarChecklists, dump } = require("./gpm");
 const { uploadCsv } = require("./drive");
-const { carimbar } = require("./timestamp");
 const { compilar } = require("./compilar");
 const { mesAnoD1, intervaloD1, fmtBR, validarIntervalo } = require("./util");
 const { parseCsv, serializeCsv } = require("./uniao");
@@ -58,9 +57,6 @@ async function comRetry(fn, label, tentativas = 2) {
     if (r0.vazio) {
       console.log("[run] nada a exportar (periodo sem registros). Encerrando OK sem enviar ao Drive.");
       resultado = { nomeFinal: `${mesAno}.csv`, acao: "vazio-skip", bytes: 0, md5: "-" };
-      // Mes vazio tambem e execucao bem-sucedida: carimba, senao a planilha
-      // faria parecer que o robo parou de rodar.
-      if (!dryRun) await carimbar(cfg, "(sem registros)");
       return; // finally fecha o browser; sai 0
     }
     const { buffer, md5, bytes, linhas, nomeFinal } = r0;
@@ -125,10 +121,6 @@ async function comRetry(fn, label, tentativas = 2) {
   } finally {
     await browser.close();
   }
-
-  // Carimbo de fim de execucao na planilha de controle (BD_Config_CE!C4). So em
-  // run de verdade que deu certo: DRY_RUN e falha nao mexem na planilha.
-  if (!falhou && resultado && !dryRun) await carimbar(cfg);
 
   // Compila a pasta inteira na aba BD_Checklist_GPM. Roda DEPOIS do upload, pra
   // a planilha ja enxergar o mes de hoje. Falha aqui NAO derruba o run: o CSV do

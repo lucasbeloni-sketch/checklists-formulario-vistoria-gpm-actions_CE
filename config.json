@@ -12,12 +12,7 @@
   "destFolderId": "1h7atjC_nVPel0UEsrO9LT-9ekAt9AcOG",
   "timezone": "America/Sao_Paulo",
 
-  "_comentario_timestamp": "Carimbo de 'ultima execucao' gravado no FIM do run (src/timestamp.js) via Sheets API. A service account precisa de acesso EDITOR nesta planilha — e um escopo diferente do Drive (spreadsheets). Falha ao carimbar nao derruba o run: o CSV ja foi pro Drive antes. E a MESMA planilha dos robos de BA, mas em aba propria de CE (BD_Config_CE) — nao mexa na BD_Config, que e a da BA (C8 = UTD, C10 = LPT).",
-  "timestamp": {
-    "spreadsheetId": "1-_lTKT4wSDlJtTXkF1tLHstV9h-S3Yq_2cE8jOIC3kI",
-    "aba": "BD_Config_CE",
-    "celula": "C4"
-  },
+  "_comentario_heartbeat": "Este robo NAO carimba mais na planilha de controle PAINEL CCM - Robos (BD_Config_CE!C4) — removido em 17/09/2026. O heartbeat agora e o timestamp que o compilador grava em BD_Checklist_GPM!B1 (ver sheet.timestampCell abaixo), na propria planilha onde os dados aparecem. Os robos de BA continuam carimbando na aba BD_Config deles; isso aqui nao os afeta.",
 
   "_comentario_sheet": "Compilador (src/compilar.js): junta TODAS as linhas de dados dos CSVs da pasta e escreve na aba BD_Checklist_GPM da planilha de bases de CE, a partir da linha 3. Layout da aba, igual ao das abas irmas (BD_Vistoria_GPM, BD_ConsultaServ): L1 = rotulo em A1 + timestamp em B1, L2 = os 27 cabecalhos, L3+ = dados. O compilador NUNCA toca as linhas 1-2 fora da celula do timestamp. minLinhas e o portao contra limpar a aba e escrever quase nada se a listagem do Drive vier curta.",
   "sheet": {
