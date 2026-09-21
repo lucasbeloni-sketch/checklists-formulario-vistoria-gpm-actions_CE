@@ -2,7 +2,9 @@ name: Checklists Formulario de Vistoria GPM CE
 
 on:
   schedule:
-    - cron: "0 */6 * * *"   # a cada 6h (UTC): 00/06/12/18 UTC = 21/03/09/15 BRT
+    - cron: "40 */6 * * *"  # a cada 6h (UTC) no minuto 40: 00/06/12/18 UTC = 21/03/09/15 BRT.
+                            # Minuto escalonado pra nao coincidir com os outros robos CE,
+                            # que dividem a mesma conta do GPM.
   workflow_dispatch:
     inputs:
       dry_run:
